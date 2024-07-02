@@ -52,6 +52,87 @@ df |>
 
 df |>
   mutate(grade_group_cat = if_else(grade_group == "NG", "NG", "G"), state = as.character(state),.before = grade_group) |>
-  summarise(pop = sum(total),
-            .by = c(state, grade_group_cat)) |>
-  mutate(percent = pop/sum(pop), .by = state)
+  summarise(pop = sum(total), .by = c(state, grade_group_cat)) |>
+  mutate(percent = round(pop/sum(pop),2), .by = state) |>
+  ggplot(aes(x = state, y = percent, fill = grade_group_cat)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = scales::percent(percent), vjust = 1), position = position_dodge(width = 1), size = 4) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_percent())
+
+########### plot - 5
+
+df |>
+  select(-total) |>
+  pivot_longer(cols = c(male, female, other), names_to = "gender", values_to = "pop") |>
+  filter(gender != "other") |>
+  ggplot(aes(x = as.character(state), y = pop, fill = gender)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ grade_group, scales = "free") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_comma()) +
+  labs(
+    x = "Province",
+    y = "No. of Students",
+    fill = "Gender"
+  )
+
+########### plot - 6
+
+df |>
+  select(-total) |>
+  pivot_longer(cols = c(male, female, other), names_to = "gender", values_to = "pop") |>
+  filter(gender != "other") |>
+  ggplot(aes(x = as.character(state), y = pop, fill = gender)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = scales::comma(pop), vjust = 1), position = position_dodge(width = 1), size = 2) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_comma()) +
+  labs(
+    x = "Province",
+    y = "No. of Students",
+    fill = "Gender"
+  ) +
+  facet_wrap(~ grade_group, scales = "free") +
+  theme(
+    strip.text.x = element_text(face = "bold")
+  )
+
+
+########### plot - 7
+
+df |>
+  select(-total) |>
+  pivot_longer(cols = c(male, female, other), names_to = "gender", values_to = "pop") |>
+  filter(gender != "other") |>
+  summarise(popul = sum(pop), .by = c(state, gender)) |>
+  ggplot(aes(x = as.character(state), y = popul, fill = gender)) +
+  geom_col(position = "dodge") +
+  theme_minimal() +
+  labs(x = "Province", y = "No. of students", fill = "Gender") +
+  scale_y_continuous(labels = scales::label_comma())
+
+
+############ plot - 8
+library(tidyverse)
+library(readxl)
+library(ggpol)
+
+pd <- read_excel("data/pop78.xlsx")
+
+pd |> 
+  pivot_longer(cols = `00-04`:`95 +`, names_to = "age", values_to = "population") |> 
+  mutate(newpop = if_else(Sex == "female", -population, population)) |> 
+  mutate(per = population * 100 /sum(population), .by = c(Province, age,Sex)) |> 
+  ggplot(aes(x = age, y = newpop, fill = Sex)) +
+  geom_bar(stat = "identity", width = 0.8, position = "identity") +
+  theme_minimal() +
+  coord_flip() +
+  labs(y = "Population", x = "Age", title = "") +
+  scale_y_continuous(labels = scales::label_comma()) +
+  facet_wrap(~ Province, nrow = 2)
+
+pd |> 
+  pivot_longer(cols = `00-04`:`95 +`, names_to = "age", values_to = "population") |> 
+  mutate(newpop = if_else(Sex == "female", -population, population)) |> 
+  mutate(per = population * 100 /sum(population), .by = c(Province,Sex)) |> print(n = 21)

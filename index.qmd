@@ -1,0 +1,66 @@
+---
+title: "SEE-RESULT-2080"
+execute: 
+  echo: false
+  warning: false
+---
+
+```{r}
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(tidytext)
+
+df <- read_excel("data/see_result_80.xlsx", sheet = "see80")
+```
+
+## Background
+
+Nepal introduced the SLC exams in 1934 AD/1990 BS. These exams are referred to as “Prabeshika Parikshha” in Nepali. The students of Durbar High School were the first in Nepal to take the SLC exams, in 1934. Renowned for their difficulty, these exams are commonly known as the "Iron Gate". Starting from 2074 BS, the SLC was renamed the SEE and a new grading system, using grades A to D began to be implemented. The SLC was renamed as the SEE to indicate the new format's broader scope. The transition to the SEE has had quite an impact on educational practices in Nepal.
+
+There were total `r scales::comma(sum(df$total))` students that appeared for SEE 2080 exams. Total Non-graded students were `r scales::comma(sum(df$total[df$grade_group == "NG"]))` which means `r scales::comma(sum(df$total[df$grade_group != "NG"]))` students were declared successful.
+
+## Analysis of the Results
+
+We have analysed on different aspects of the SEE exams based on data available to us.
+
+### Provice-Wise appeared students
+
+```{r}
+df |> summarise(total_student = sum(total), .by = state) |>
+  ggplot(aes(x = factor(state), y = total_student, fill = factor(state))) +
+  geom_col() +
+  geom_text(aes(label = scales::comma(total_student), vjust = 1), size = 5) +
+  labs(
+    x = "Province",
+    y = "No of Students",
+    fill = "Province"
+  ) +
+  scale_y_continuous(labels = scales::label_comma()) +
+  theme(legend.position = "")
+
+```
+
+Province-3 has highest number of SEE appearing students followed by 5, 2 and 1. There were lesser students appearing in province 4, 6 and 7. This due to fact lesser population are in those provinces supported by the below population graph based on year 2021 census data of Nepal.
+
+```{r}
+
+
+pd <- read_excel("data/pop78.xlsx")
+
+pd1 <- pd |> 
+  pivot_longer(cols = `00-04`:`95 +`, names_to = "age", values_to = "population") |> 
+  mutate(newpop = if_else(Sex == "female", -population, population), pop_1000 = newpop/1000, Province = fct(Province, levels = c("koshi", "madhesh", "bagmati", "gandaki", "lumbini", "karnali", "sudupaschim"))) |> 
+  mutate(per = population * 100 /sum(population), .by = c(Province, age,Sex))
+
+pd1 |> ggplot(aes(x = age, y = pop_1000, fill = Sex)) +
+  geom_bar(stat = "identity", width = 0.8, position = "identity") +
+  theme_minimal() +
+  coord_flip() +
+  labs(y = "Population in thousands", x = "Age", title = "") +
+  scale_y_continuous(labels = abs(pretty(pd1$pop_1000)), breaks = pretty(pd1$pop_1000)) +
+  facet_wrap(~ Province, nrow = 2) +
+  theme(axis.text = element_text(size = 6))
+```
+
