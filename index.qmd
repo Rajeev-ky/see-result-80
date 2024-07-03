@@ -87,7 +87,7 @@ df |> mutate(state = as.character(state)) |>
   theme(legend.position = "")
 ```
 
-The above plot displays that majority of students were non graded (NG) as stated in @sec-background . Surprisingly province 5 has the highest non grading of the students followed by 2. Province 4 has the lowest NG, due to lower population of the appearing students. Definitely education system in province 5 and 2 should be made more robust to avoid such failures. of the successful students, majority scored GPA between 2.80 and 4, which shows scoring anywhere between 2.80 and 4 is more likely if focus on education is given. Province 3 has highest number of students in different GPA category, suggesting there is good education system. There after Province 2 has highest number of students. However students scored more in GPA 3.60 to 4.00 category from province 3, again indicating the robust education system. Other provinces performed poorly in this category questioning resource level in those provinces.
+The above plot displays that majority of students were non graded (NG) as stated in @sec-background . Surprisingly province 5 has the highest non grading of the students followed by 2. Province 4 has the lowest NG, due to lower population of the appearing students. Definitely education system in province 5 and 2 should be made more robust to avoid such failures. Of the successful students, majority scored GPA between 2.80 and 4, which shows scoring anywhere between 2.80 and 4 is more likely if focus on education is given. Province 3 has highest number of students in different GPA category, suggesting there is good education system. There after Province 2 has highest number of students. However students scored more in GPA 3.60 to 4.00 category from province 3, again indicating the robust education system. Other provinces performed poorly in this category questioning resource level in those provinces.
 
 ## Proportion of Graded and Non-Graded students in provinces {#sec-proportion-of-graded-and-non-graded-students-in-provinces}
 
@@ -147,6 +147,6 @@ df |>
 
 ```
 
-The notable point is more female are non graded than male. Likewise more male students performed well in other grade categories. This may be due to fact that despite more female population male students got more care and attention for their studies in family. However this is just a guess. There may be other factors responsible.
+The notable point is more female are non graded than male. Likewise more male students performed well in other grade categories. This may be due to fact that male students got more care and attention for their studies in family. However this is just a guess. There may be other factors responsible.
 
 
