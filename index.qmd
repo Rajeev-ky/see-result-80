@@ -15,7 +15,7 @@ library(tidytext)
 df <- read_excel("data/see_result_80.xlsx", sheet = "see80")
 ```
 
-## Background
+## Background {#sec-background}
 
 Nepal introduced the SLC exams in 1934 AD/1990 BS. These exams are referred to as “Prabeshika Parikshha” in Nepali. The students of Durbar High School were the first in Nepal to take the SLC exams, in 1934. Renowned for their difficulty, these exams are commonly known as the "Iron Gate". Starting from 2074 BS, the SLC was renamed the SEE and a new grading system, using grades A to D began to be implemented. The SLC was renamed as the SEE to indicate the new format's broader scope. The transition to the SEE has had quite an impact on educational practices in Nepal.
 
@@ -25,9 +25,11 @@ There were total `r scales::comma(sum(df$total))` students that appeared for SEE
 
 We have analysed on different aspects of the SEE exams based on data available to us.
 
-### Provice-Wise appeared students
+### Province-Wise appeared students {#sec-province-wise-appeared-students}
 
 ```{r}
+#| fig-cap: "Figure 1: Province wise total students."
+
 df |> summarise(total_student = sum(total), .by = state) |>
   ggplot(aes(x = factor(state), y = total_student, fill = factor(state))) +
   geom_col() +
@@ -45,13 +47,13 @@ df |> summarise(total_student = sum(total), .by = state) |>
 Province-3 has highest number of SEE appearing students followed by 5, 2 and 1. There were lesser students appearing in province 4, 6 and 7. This due to fact lesser population are in those provinces supported by the below population graph based on year 2021 census data of Nepal.
 
 ```{r}
-
+#| fig-cap: "Figure 2: Agewise population from census data 2078."
 
 pd <- read_excel("data/pop78.xlsx")
 
 pd1 <- pd |> 
   pivot_longer(cols = `00-04`:`95 +`, names_to = "age", values_to = "population") |> 
-  mutate(newpop = if_else(Sex == "female", -population, population), pop_1000 = newpop/1000, Province = fct(Province, levels = c("koshi", "madhesh", "bagmati", "gandaki", "lumbini", "karnali", "sudupaschim"))) |> 
+  mutate(newpop = if_else(Sex == "female", -population, population), pop_1000 = newpop/1000, Province = fct(Province, levels = c("koshi", "madhesh", "bagmati", "gandaki", "lumbini", "karnali", "sudurpaschim"))) |> 
   mutate(per = population * 100 /sum(population), .by = c(Province, age,Sex))
 
 pd1 |> ggplot(aes(x = age, y = pop_1000, fill = Sex)) +
@@ -63,4 +65,88 @@ pd1 |> ggplot(aes(x = age, y = pop_1000, fill = Sex)) +
   facet_wrap(~ Province, nrow = 2) +
   theme(axis.text = element_text(size = 6))
 ```
+
+Please note that Province 1 refers to koshi, 2 to madhesh, 3 to bagmati, 4 to gandaki, 5 to lumbini, 6 to karnali and 7 to sudurpaschim.
+
+## Analysis of grade-wise performance by province {#sec-analysis-of-grade-wise-performance-by-province}
+
+```{r}
+#| fig-cap: "Figure 3: Grade wise performance of provinces."
+
+df |> mutate(state = as.character(state)) |>
+  ggplot(aes(x = reorder_within(state,-total, total), y = total, fill = state)) +
+  geom_col() +
+  scale_x_reordered() +
+  facet_wrap(~ grade_group, scales = "free") +
+  theme_minimal() +
+  labs(
+    x = "Province",
+    y = "No. of Students"
+  ) +
+  scale_y_continuous(labels = scales::label_comma()) +
+  theme(legend.position = "")
+```
+
+The above plot displays that majority of students were non graded (NG) as stated in @sec-background . Surprisingly province 5 has the highest non grading of the students followed by 2. Province 4 has the lowest NG, due to lower population of the appearing students. Definitely education system in province 5 and 2 should be made more robust to avoid such failures. of the successful students, majority scored GPA between 2.80 and 4, which shows scoring anywhere between 2.80 and 4 is more likely if focus on education is given. Province 3 has highest number of students in different GPA category, suggesting there is good education system. There after Province 2 has highest number of students. However students scored more in GPA 3.60 to 4.00 category from province 3, again indicating the robust education system. Other provinces performed poorly in this category questioning resource level in those provinces.
+
+## Proportion of Graded and Non-Graded students in provinces {#sec-proportion-of-graded-and-non-graded-students-in-provinces}
+
+```{r}
+#| fig-cap: "Figure 4: Comparison of Graded and Non-Graded students in provinces."
+
+df |> mutate(grade_group_cat = if_else(grade_group == "NG", "NG", "G"), state = as.character(state),.before = grade_group) |>
+  summarise(total_pop = sum(total), .by = c(state, grade_group_cat)) |>
+  ggplot(aes(x = state, y = total_pop, fill = grade_group_cat)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = scales::comma(total_pop),vjust = 1), position = position_dodge(width = 1), size = 3) +
+  theme_minimal() +
+  labs(
+    x = "Province",
+    y = "No. of Students",
+    fill = "Is Graded?"
+  ) +
+  scale_y_continuous(labels = scales::label_comma())
+```
+
+The proportion of Non-Graded students are higher in all provinces except for Province 3, again substantiating the good education system. However, it is a matter of concern to authorities and should find a way to improve the grades in other provinces. If we convert the population in percentage in @sec-proportion-of-graded-and-non-graded-students-in-provinces we see province 7 has highest % of non graded students in below figure.
+
+```{r}
+#| fig-cap: "Figure 5: Comparison of graded and Non graded students in percentages."
+
+df |>
+  mutate(grade_group_cat = if_else(grade_group == "NG", "NG", "G"), state = as.character(state),.before = grade_group) |>
+  summarise(pop = sum(total), .by = c(state, grade_group_cat)) |>
+  mutate(percent = round(pop/sum(pop),2), .by = state) |>
+  ggplot(aes(x = state, y = percent, fill = grade_group_cat)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = scales::percent(percent), vjust = 1), position = position_dodge(width = 1), size = 4) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_percent())
+```
+
+## Non-Graded by Gender
+
+```{r}
+#| fig-cap: "Figure 6: Nongraded by gender"
+
+df |>
+  select(-total) |>
+  pivot_longer(cols = c(male, female, other), names_to = "gender", values_to = "pop") |>
+  filter(gender != "other") |>
+  ggplot(aes(x = as.character(state), y = pop, fill = gender)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ grade_group, scales = "free") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_comma()) +
+  labs(
+    x = "Province",
+    y = "No. of Students",
+    fill = "Gender"
+  )
+
+
+```
+
+The notable point is more female are non graded than male. Likewise more male students performed well in other grade categories. This may be due to fact that despite more female population male students got more care and attention for their studies in family. However this is just a guess. There may be other factors responsible.
+
 

@@ -117,22 +117,22 @@ df |>
 library(tidyverse)
 library(readxl)
 library(ggpol)
-
+library(signs)
 pd <- read_excel("data/pop78.xlsx")
 
-pd |> 
+
+pd1 <- pd |> 
   pivot_longer(cols = `00-04`:`95 +`, names_to = "age", values_to = "population") |> 
-  mutate(newpop = if_else(Sex == "female", -population, population)) |> 
-  mutate(per = population * 100 /sum(population), .by = c(Province, age,Sex)) |> 
-  ggplot(aes(x = age, y = newpop, fill = Sex)) +
+  mutate(newpop = if_else(Sex == "female", -population, population), pop_1000 = newpop/1000) |> 
+  mutate(per = population * 100 /sum(population), .by = c(Province, age,Sex))
+
+pd1 |> ggplot(aes(x = age, y = pop_1000, fill = Sex)) +
   geom_bar(stat = "identity", width = 0.8, position = "identity") +
   theme_minimal() +
   coord_flip() +
-  labs(y = "Population", x = "Age", title = "") +
-  scale_y_continuous(labels = scales::label_comma()) +
-  facet_wrap(~ Province, nrow = 2)
+  labs(y = "Population in thousands", x = "Age", title = "") +
+  scale_y_continuous(labels = abs(pretty(pd1$pop_1000)), breaks = pretty(pd1$pop_1000)) +
+  facet_wrap(~ Province, nrow = 2) +
+  theme(axis.text = element_text(size = 6))
 
-pd |> 
-  pivot_longer(cols = `00-04`:`95 +`, names_to = "age", values_to = "population") |> 
-  mutate(newpop = if_else(Sex == "female", -population, population)) |> 
-  mutate(per = population * 100 /sum(population), .by = c(Province,Sex)) |> print(n = 21)
+
